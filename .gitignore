@@ -1,4 +1,4 @@
 .DS_Store
-./schemas/c4-plantuml
+./schemas/c4-plantuml/*
 .gitmodules
 .vscode/settings.json

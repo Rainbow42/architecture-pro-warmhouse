@@ -23,7 +23,7 @@ type TemperatureResponse struct {
 }
 
 func randomTemp() float64 {
-	raw := rand.Float64()*45.0 - 10.0 // -10.0 to 35.0
+	raw := rand.Float64()*45.0 - 10.0
 	return math.Round(raw*10) / 10
 }
 

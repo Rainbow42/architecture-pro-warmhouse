@@ -246,4 +246,72 @@ GET http://localhost:8081/temperature?location=kitchen
 1. Создайте новые микросервисы для управления телеметрией и устройствами (с простейшей логикой), которые будут интегрированы с существующим монолитным приложением. Каждый микросервис на своем ООП языке.
 2. Обеспечьте взаимодействие между микросервисами и монолитом (при желании с помощью брокера сообщений), чтобы постепенно перенести функциональность из монолита в микросервисы. 
 
-В результате у вас должны быть созданы Dockerfiles и docker-compose для запуска микросервисов. 
+В результате у вас должны быть созданы Dockerfiles и docker-compose для запуска микросервисов.
+
+### Решение
+
+**Что реализовано:**
+
+Два новых Go-микросервиса с in-memory хранилищем (MVP, без БД):
+
+| Сервис | Порт | Назначение |
+|--------|------|------------|
+| `device-service` | 8082 | Реестр устройств: создание, получение, обновление статуса |
+| `telemetry-service` | 8083 | Приём и хранение телеметрии устройств |
+
+**Интеграция с монолитом:**
+
+Монолит получает переменные окружения в docker-compose:
+- `DEVICE_SERVICE_URL=http://device-service:8082`
+- `TELEMETRY_SERVICE_URL=http://telemetry-service:8083`
+
+Сервисы доступны в одной Docker-сети `smarthome-network`. Монолит может вызывать их по HTTP-имени контейнера.
+
+**Запуск:**
+
+```bash
+cd apps
+docker-compose up --build
+```
+
+**Проверка health:**
+
+```bash
+curl http://localhost:8082/health
+curl http://localhost:8083/health
+```
+
+**device-service — примеры запросов:**
+
+```bash
+# Создать устройство
+curl -X POST http://localhost:8082/devices \
+  -H "Content-Type: application/json" \
+  -d '{"houseId":"house-1","roomId":"room-1","name":"Kitchen sensor","type":"temperature_sensor","vendor":"demo"}'
+
+# Получить список устройств
+curl http://localhost:8082/devices
+
+# Получить устройство по ID
+curl http://localhost:8082/devices/{id}
+
+# Обновить статус
+curl -X PATCH http://localhost:8082/devices/{id}/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"offline"}'
+```
+
+**telemetry-service — примеры запросов:**
+
+```bash
+# Отправить событие телеметрии
+curl -X POST http://localhost:8083/telemetry \
+  -H "Content-Type: application/json" \
+  -d '{"deviceId":"device-1","capability":"temperature","value":24.6,"unit":"celsius","occurredAt":"2026-05-04T10:00:00Z"}'
+
+# Получить всю телеметрию
+curl http://localhost:8083/telemetry
+
+# Получить телеметрию по устройству
+curl http://localhost:8083/telemetry/device/device-1
+```
