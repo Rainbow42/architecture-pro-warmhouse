@@ -1,4 +1,4 @@
-@startuml Модель сценария ы
+@startuml scenario_model_class
 title Модель сценария автоматизации\n(AutomationOrchestratorService)
 
 class Scenario {

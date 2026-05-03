@@ -1,4 +1,4 @@
-@startuml Шлюз для маппинга команды к протоколу производителя
+@startuml vendor_command_mapping_sequence
 title Шлюз для маппинга команды к протоколу производителя\n(DeviceIntegrationGateway)
 
 participant "AutomationOrchestratorService" as AO

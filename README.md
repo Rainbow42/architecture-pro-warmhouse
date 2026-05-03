@@ -83,9 +83,17 @@
 
 **Диаграмма кода (Code)**
 
-- [`automation_execution_sequence.puml`](schemas/code/automation_execution_sequence.puml) — последовательность выполнения автоматизации в `automation-orchestrator`: от получения `DeviceEvent` до отправки `DeviceCommand` в шлюз.
-- [`scenario_model_class.puml`](schemas/code/scenario_model_class.puml) — доменная модель: `Scenario`, `Trigger`, `Condition`, `Action`, `DeviceEvent`, `DeviceCommand`.
-- [`vendor_command_mapping_sequence.puml`](schemas/code/vendor_command_mapping_sequence.puml) — маппинг команды к протоколу производителя внутри `device-integration-gateway`.
+Последовательность выполнения автоматизации в `automation-orchestrator`: от получения `DeviceEvent` до отправки `DeviceCommand` в шлюз. Исходник: [`schemas/code/automation_execution_sequence.puml`](schemas/code/automation_execution_sequence.puml).
+
+![Последовательность выполнения автоматизации](schemas/code/automation_execution_sequence.png)
+
+Доменная модель: `Scenario`, `Trigger`, `Condition`, `Action`, `DeviceEvent`, `DeviceCommand`. Исходник: [`schemas/code/scenario_model_class.puml`](schemas/code/scenario_model_class.puml).
+
+![Модель сценария автоматизации](schemas/code/scenario_model_class.png)
+
+Маппинг команды к протоколу производителя внутри `device-integration-gateway`. Исходник: [`schemas/code/vendor_command_mapping_sequence.puml`](schemas/code/vendor_command_mapping_sequence.puml).
+
+![Маппинг команды к протоколу производителя](schemas/code/vendor_command_mapping_sequence.png)
 
 ### Основные сценарии взаимодействия
 

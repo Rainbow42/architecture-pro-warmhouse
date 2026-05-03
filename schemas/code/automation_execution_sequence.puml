@@ -1,4 +1,4 @@
-@startuml Выполнение автоматизации по событию устройства
+@startuml automation_execution_sequence
 title Выполнение автоматизации по событию устройства\n(AutomationOrchestratorService)
 
 queue "Event Bus" as Bus
