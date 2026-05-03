@@ -1,0 +1,59 @@
+@startuml Warmhouse - C4 Container Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+
+Person(user, "Пользователь", "Клиент, который использует Warmhouse, просматривает состояние устройств и управляет ими")
+Person(admin, "Администратор", "Управляет пользователями, устройствами и настройками системы")
+System_Ext(sensors, "Умные устройства", "Умные устройства: температура, движение, освещение и т.д. Подключаются по интернету")
+
+System_Boundary(c1, "Services Warmhouse") {
+
+    Container(app, "SmartHomeDashboard", "Mobile / Web App", "UI для просмотра состояния устройств и управления умным домом")
+    Container(service_users_management, "UserManagementService", "Microservice, Go", "Управляет пользователями, домами, комнатами, регистрацией устройств")
+    Container(service_automation_orchestrator, "AutomationOrchestratorService", "Microservice, Go", "Создание, редактирование, валидация и публикация сценариев автоматизации и пользовательскими доработками в коде устройств (только хранит)")
+    Container(service_command_execution, "CommandExecutionService", "Microservice, Go", "Исполнение команд и сценариев: оценка триггеров, условий, расписаний, повторных попыток и координация управления устройствами (runtime)")
+    Container(service_event_processing, "EventProcessingService", "Microservice, Go", "Приём, нормализация, валидация и хранение телеметрии от шлюза; публикация событий в шину")
+    Container(device_integration_gateway, "DeviceIntegrationGateway", "Microservice, Go", "Интеграционный шлюз, нужен для поддержки разных адаптеров производителей, маппинг команд и событий")
+
+    ContainerQueue(event_bus, "Event Bus", "Kafka", "Шина событий для асинхронного обмена между сервисами")
+    ContainerQueue(telemetry_bus, "Telemetry Bus", "Kafka", "Шина телеметрии для асинхронного обмена между сервисами")
+
+    ContainerDb(db_users_management, "UserManagement", "PostgreSQL 16", "Пользователи, дома, комнаты, реестр устройств, права доступа")
+    ContainerDb(db_automation_orchestrator, "AutomationOrchestrator", "PostgreSQL 16", "Определения сценариев и правил автоматизации, версии")
+    ContainerDb(db_command_execution, "CommandExecution", "PostgreSQL 16", "История команд, активные сценарии, состояние выполнения")
+    ContainerDb(db_event_processing, "EventProcessing", "PostgreSQL 16", "Телеметрия и события от устройств")
+
+    Rel(service_users_management, db_users_management, "Читает и записывает")
+    Rel(service_automation_orchestrator, db_automation_orchestrator, "Читает и записывает")
+    Rel(service_command_execution, db_command_execution, "Читает и записывает")
+    Rel(service_event_processing, db_event_processing, "Читает и записывает")
+}
+
+'Relationships between the users and the services
+Rel(user, app, "Управляет умным домом", "HTTPS")
+Rel(admin, app, "Администрирует систему", "HTTPS")
+Rel(app, service_users_management, "Запросы пользователя и администратора", "HTTPS ")
+
+' Relationships between the services
+Rel(service_users_management, service_automation_orchestrator, "Управление сценариями автоматизации", "HTTPS ")
+Rel(service_users_management, service_command_execution, "Ручные команды на устройства", "HTTPS ")
+
+Rel(service_automation_orchestrator, service_command_execution, "Публикует активные сценарии", "HTTPS ")
+Rel(device_integration_gateway, sensors, "Отправляет команды на устройства", "HTTPS")
+Rel(sensors, device_integration_gateway, "Отправляет показатели устройств", "HTTPS")
+
+
+' Relationships between the services and the event bus
+Rel(service_command_execution, event_bus, "Публикует события с командами для устройств", "Publish")
+Rel(event_bus, device_integration_gateway, "Получает события с командами для устройств", "Subscribe")
+
+Rel(event_bus, service_command_execution, "Получает события для оценки триггеров", "Subscribe")
+Rel(service_event_processing, event_bus, "Публикует события устройств", "Publish")
+
+Rel(device_integration_gateway, telemetry_bus, "Отправляет показатели устройств", "Publish")
+Rel(telemetry_bus, service_event_processing, "Получает сырые события от устройств", "Subscribe")
+
+
+SHOW_LEGEND()
+@enduml
