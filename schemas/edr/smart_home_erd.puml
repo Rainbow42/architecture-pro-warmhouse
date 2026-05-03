@@ -1,0 +1,149 @@
+@startuml Логическая модель данных сервиса Warmhouse
+
+skinparam linetype ortho
+
+package "UserManagement\n(UserManagementService)" #E8F4FD {
+
+  entity "User" as user {
+    * id : UUID
+    --
+    email : string
+    name : string
+    role : admin | owner
+    created_at : datetime
+  }
+
+  entity "House" as house {
+    * id : UUID
+    --
+    owner_user_id : UUID <<FK>>
+    name : string
+    address : string
+    created_at : datetime
+  }
+
+  entity "Room" as room {
+    * id : UUID
+    --
+    house_id : UUID <<FK>>
+    name : string
+    type : string
+  }
+
+  entity "Vendor" as vendor {
+    * id : UUID
+    --
+    name : string
+    integration_type : string
+  }
+
+  entity "DeviceType" as device_type {
+    * id : UUID
+    --
+    name : string
+    category : string
+  }
+
+  entity "DeviceCapability" as capability {
+    * id : UUID
+    --
+    device_type_id : UUID <<FK>>
+    name : string
+    value_type : string
+    unit : string
+  }
+
+  entity "Device" as device {
+    * id : UUID
+    --
+    house_id : UUID <<FK>>
+    room_id : UUID <<FK>>
+    device_type_id : UUID <<FK>>
+    vendor_id : UUID <<FK>>
+    name : string
+    serial_number : string
+    status : active | offline
+    created_at : datetime
+  }
+
+}
+
+package "AutomationOrchestrator\n(AutomationOrchestratorService)" #FFF3E0 {
+
+  entity "AutomationScenario" as scenario {
+    * id : UUID
+    --
+    house_id : UUID <<ref>>
+    created_by_user_id : UUID <<ref>>
+    name : string
+    enabled : boolean
+    version : int
+    created_at : datetime
+    updated_at : datetime
+  }
+
+  entity "AutomationTrigger" as trigger {
+    * id : UUID
+    --
+    scenario_id : UUID <<FK>>
+    source_device_id : UUID <<ref>>
+    capability_id : UUID <<ref>>
+    operator : eq | gt | lt | neq
+    value : string
+  }
+
+  entity "AutomationAction" as action {
+    * id : UUID
+    --
+    scenario_id : UUID <<FK>>
+    target_device_id : UUID <<ref>>
+    capability_id : UUID <<ref>>
+    action : string
+    value : string
+  }
+
+}
+
+package "CommandExecution\n(CommandExecutionService)" #F3E5F5 {
+
+  entity "CommandLog" as cmd_log {
+    * id : UUID
+    --
+    device_id : UUID <<ref>>
+    scenario_id : UUID <<ref>>
+    command_type : string
+    payload : json
+    status : pending | sent | failed
+    created_at : datetime
+  }
+
+}
+
+package "EventProcessing\n(EventProcessingService)" #E8F5E9 {
+
+  entity "TelemetryData" as telemetry {
+    * id : UUID
+    --
+    device_id : UUID <<ref>>
+    capability_id : UUID <<ref>>
+    value : string
+    occurred_at : datetime
+    received_at : datetime
+  }
+
+}
+
+' Связи внутри UserManagement
+user ||--o{ house : "владеет"
+house ||--o{ room : "содержит"
+house ||--o{ device : "содержит"
+room |o--o{ device : "размещает"
+vendor ||--o{ device : "производит"
+device_type ||--o{ device : "определяет тип"
+device_type ||--o{ capability : "имеет"
+
+' Связи внутри AutomationOrchestrator
+scenario ||--o{ trigger : "содержит"
+scenario ||--o{ action : "содержит"
+
+@enduml

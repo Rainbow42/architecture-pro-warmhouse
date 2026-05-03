@@ -51,7 +51,7 @@
 
 Диаграмма контекста монолита (C4 Context):
 
-[schemas/diagrams/context/monolith_diagram.puml](schemas/diagrams/context/monolith_diagram.puml)
+[schemas/context/monolith_diagram.puml](schemas/context/monolith_diagram.puml)
 
 Диаграмма показывает трёх внешних участников: **Пользователь** (просмотр данных), **Администратор** (управление конфигурацией) и **Умные устройства** (отправка телеметрии). Монолит выступает единственной системой, взаимодействующей с внешним Temperature API.
 
@@ -73,19 +73,19 @@
 
 **Диаграмма контейнеров (Containers)**
 
-[schemas/diagrams/container/microsevice_diagram_container.puml](schemas/diagrams/container/microsevice_diagram_container.puml)
+[schemas/container/microsevice_diagram_container.puml](schemas/container/microsevice_diagram_container.puml)
 
 **Диаграмма компонентов (Components)**
 
-[schemas/diagrams/component/microsevice_diagram_component.puml](schemas/diagrams/component/microsevice_diagram_component.puml)
+[schemas/component/microsevice_diagram_component.puml](schemas/component/microsevice_diagram_component.puml)
 
 Диаграмма раскрывает внутреннюю структуру каждого сервиса: API-компоненты, бизнес-логику, Kafka-продьюсеры и консьюмеры, репозитории и вендорные адаптеры внутри `DeviceIntegrationGateway`.
 
 **Диаграмма кода (Code)**
 
-- [`automation_execution_sequence.puml`](diagrams/code/automation_execution_sequence.puml) — последовательность выполнения автоматизации в `automation-orchestrator`: от получения `DeviceEvent` до отправки `DeviceCommand` в шлюз.
-- [`scenario_model_class.puml`](diagrams/code/scenario_model_class.puml) — доменная модель: `Scenario`, `Trigger`, `Condition`, `Action`, `DeviceEvent`, `DeviceCommand`.
-- [`vendor_command_mapping_sequence.puml`](diagrams/code/vendor_command_mapping_sequence.puml) — маппинг команды к протоколу производителя внутри `device-integration-gateway`.
+- [`automation_execution_sequence.puml`](schemas/code/automation_execution_sequence.puml) — последовательность выполнения автоматизации в `automation-orchestrator`: от получения `DeviceEvent` до отправки `DeviceCommand` в шлюз.
+- [`scenario_model_class.puml`](schemas/code/scenario_model_class.puml) — доменная модель: `Scenario`, `Trigger`, `Condition`, `Action`, `DeviceEvent`, `DeviceCommand`.
+- [`vendor_command_mapping_sequence.puml`](schemas/code/vendor_command_mapping_sequence.puml) — маппинг команды к протоколу производителя внутри `device-integration-gateway`.
 
 ### Основные сценарии взаимодействия
 
@@ -109,7 +109,7 @@
 
 # Задание 3. Разработка ER-диаграммы
 
-Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
+Модель данных умного дома: [`diagrams/edr/smart_home_erd.puml`](diagrams/edr/smart_home_erd.puml)
 
 # Задание 4. Создание и документирование API
 
