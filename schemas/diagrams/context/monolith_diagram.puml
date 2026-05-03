@@ -14,7 +14,6 @@ System_Boundary(c1, "Monolith ") {
     Container(api_for_sensors, "API for Sensors", "GO", "Update sensors values and status")
     Container(temperature_api, "Temperature service", "GO", "Acts as a proxy to the sensors to get the temperature data")
 
-    ' Database
     ContainerDb(rel_db, "Database", "PostgreSQL 16", "Database for the Warmhouse app")
 
     ' Relationships between the monolith and the database

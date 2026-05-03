@@ -1,5 +1,5 @@
 @startuml Warmhouse - C4 Container Diagram
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include HTTP://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
 LAYOUT_TOP_DOWN()
 
@@ -31,17 +31,17 @@ System_Boundary(c1, "Services Warmhouse") {
 }
 
 'Relationships between the users and the services
-Rel(user, app, "Управляет умным домом", "HTTPS")
-Rel(admin, app, "Администрирует систему", "HTTPS")
-Rel(app, service_users_management, "Запросы пользователя и администратора", "HTTPS ")
+Rel(user, app, "Управляет умным домом", "HTTP")
+Rel(admin, app, "Администрирует систему", "HTTP")
+Rel(app, service_users_management, "Запросы пользователя и администратора", "HTTP ")
 
 ' Relationships between the services
-Rel(service_users_management, service_automation_orchestrator, "Управление сценариями автоматизации", "HTTPS ")
-Rel(service_users_management, service_command_execution, "Ручные команды на устройства", "HTTPS ")
+Rel(service_users_management, service_automation_orchestrator, "Управление сценариями автоматизации", "HTTP ")
+Rel(service_users_management, service_command_execution, "Ручные команды на устройства", "HTTP ")
 
-Rel(service_automation_orchestrator, service_command_execution, "Публикует активные сценарии", "HTTPS ")
-Rel(device_integration_gateway, sensors, "Отправляет команды на устройства", "HTTPS")
-Rel(sensors, device_integration_gateway, "Отправляет показатели устройств", "HTTPS")
+Rel(service_automation_orchestrator, service_command_execution, "Публикует активные сценарии", "HTTP ")
+Rel(device_integration_gateway, sensors, "Отправляет команды на устройства", "HTTP")
+Rel(sensors, device_integration_gateway, "Отправляет показатели устройств", "HTTP")
 
 
 ' Relationships between the services and the event bus
