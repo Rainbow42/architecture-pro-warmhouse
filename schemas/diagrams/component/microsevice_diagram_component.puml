@@ -92,7 +92,7 @@ Rel(comp_event_consumer_ces, event_bus, "Получает события уст�
 Rel(comp_command_consumer, event_bus, "Получает команды для устройств", "Subscribe")
 Rel(comp_event_publisher, event_bus, "Публикует обработанные события", "Publish")
 
-Rel(comp_vendor_adapters, sensors, "Отправляет команды и получает события от устройств", "HTTP / Vendor API")
+Rel(comp_vendor_adapters, sensors, "Отправляет команды и получает события от устройств", "HTTP")
 
 Rel(comp_telemetry_publisher, telemetry_bus, "Публикует сырые события устройств", "Publish")
 Rel(comp_telemetry_consumer, telemetry_bus, "Получает сырые события", "Subscribe")
