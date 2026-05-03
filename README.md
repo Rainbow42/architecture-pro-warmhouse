@@ -202,6 +202,40 @@ Locations - название комнаты, sensorId - идентификато
 
 Ревьюер будет проверять точно так же.
 
+### Решение
+
+**Что реализовано:**
+
+- `apps/temperature-api/` — простой Go-сервис (stdlib `net/http`, без зависимостей).
+- `GET /temperature?location=kitchen` — возвращает случайную температуру от −10 до 35 °C.
+- `GET /temperature/{sensorId}` — то же самое по ID сенсора (используется `smart_home` для обогащения данных датчиков).
+- `GET /health` — возвращает `{"status": "ok"}`.
+- PostgreSQL 16 инициализируется скриптом `./smart_home/init.sql`.
+
+**Запуск:**
+
+```bash
+cd apps
+docker-compose up --build
+```
+
+Сервисы после старта:
+- `smart_home` API: `http://localhost:8080`
+- `temperature-api`: `http://localhost:8081`
+- PostgreSQL: `localhost:5432`
+
+**Пример запроса к temperature-api:**
+
+```
+GET http://localhost:8081/temperature?location=kitchen
+```
+
+```json
+{"value": 23.7, "unit": "celsius", "location": "kitchen", "status": "active", ...}
+```
+
+**Проверка через Postman:** импортировать `apps/smarthome-api.postman_collection.json`, вызвать `Create Sensor`, затем `Get All Sensors` — при каждом вызове значение температуры будет разным.
+
 
 # **Задание 6. Разработка MVP**
 
