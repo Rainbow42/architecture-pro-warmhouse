@@ -1,0 +1,52 @@
+@startuml Microservice Diagram for Warmhouse app
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Users", "Warmhouse ap]p users")
+Person(admin, "Administrator", "Manages sensors and users configuration")
+System_Ext(sensors, "Sensors", "Different types of sensors are supported", $sprite="robot")
+
+System_Boundary(c1, "Microservices ") {
+    Container(app, "SmartHomeDashboard", "Mobile/Web app", "View sensors data and manage sensors")
+    ' Microservices for managing devices and users
+    Container(service_users_management, "UserManagementService", "Microservice, GO", "Сервис для управления умными устройствами: просмотр списка устройств, а также добавление, удаление, обновление, и создание сценариев, отправка команд на устройства")
+    Container(service_command_execution, "CommandExecutionService", "Microservice, GO", "Сервис для оркестрации команд для устройств и выполненеия сценариев")
+    Container(service_event_processing, "EventProcessingService", "Microservice, GO", "Сервис для приема событий от шлюза и их первичной обработки")
+    Container(device_integration_gateway, "DeviceIntegrationGateway", "Microservice, GO", "Единый шлюз для связки разных производителей устройств с нашим сервисом")
+    Container(service_automation_orchestrator, "AutomationOrchestratorService", "Microservice, GO", "Позволяет прогрммировать поведение умных устройств")
+    ' Container_Ext(message_bus, "Message Bus", "RabbitMQ", "Message bus for the microservices")
+
+    ' Database for the microservices
+    ContainerDb(db_users_management, "Database for users management", "PostgreSQL 16", "Содержит информацию о пользователях (клиент/администратор), сценариях, устройствах")
+    ContainerDb(db_command_execution, "Database for command execution", "PostgreSQL 16", "Содержит информацию о сценариях, которые нужно выполнить на устройствах, а также о командых, которые отправляет пользователь устройству")
+    ContainerDb(db_event_processing, "Database for event processing", "PostgreSQL 16", "Содержит информацию о показателях умных устройств и их сотоянии")
+    ContainerDb(db_automation_orchestrator, "Database for automation orchestrator", "PostgreSQL 16", "Содержит информацию об доработках в коде для изменения поведения умных устройств пользователями")
+}
+
+' Relationships between the microservices
+Rel(service_users_management, db_users_management, "Reads from and writes to")
+Rel(service_command_execution, db_command_execution, "Reads from and writes to")
+Rel(service_event_processing, db_event_processing, "Reads from and writes to")
+Rel(service_automation_orchestrator, db_automation_orchestrator, "Reads from and writes to")
+
+' Relationships between the microservices 
+
+' Relationships between the users and the microservices
+Rel(app, service_users_management, "HTTPS REST", "Клиент отправляет на бек запросы от администратора или пользователя")
+Rel(service_users_management, service_command_execution, "HTTPS REST", "Регистрирует новые сценарии, устройства, команды")
+Rel(service_event_processing, service_users_management, "HTTPS REST", "Передает показатели и состояние умных устройств в сервис, если они изменились")
+Rel(service_users_management, service_automation_orchestrator, "HTTPS REST", "Регистрирует новые доработки в коде для изменения поведения умных устройств")
+
+' Relationships between the devices and the microservices
+Rel(service_command_execution, device_integration_gateway, "HTTPS REST", "Передает команды на устройства")
+Rel(device_integration_gateway, service_command_execution, "HTTPS REST", "Отправляет результаты выполнения команд назад в сервис")
+Rel(device_integration_gateway, service_event_processing, "HTTPS REST", "Передает показатели умных устройств в сервис")
+Rel(service_automation_orchestrator, device_integration_gateway, "HTTPS REST", "Передает новый код устройству")
+
+
+Rel(user, app, "HTTPS REST", "Пользователь просматривает данные устройтств и управляет ими")
+Rel(admin, app, "HTTPS REST", "Администратор управляет пользователями, сценариями, устройствами")
+
+Rel(device_integration_gateway, sensors, "HTTPS REST", "Отправляет комманды устройству")
+Rel(sensors, device_integration_gateway, "HTTPS REST", "Передает показатели от устройства в сервис")
+
+@enduml
