@@ -73,17 +73,21 @@
 
 **Диаграмма контейнеров (Containers)**
 
-[schemas/container/microsevice_diagram_container.puml](schemas/container/microsevice_diagram_container.puml)
+Исходник PlantUML: [`schemas/container/microsevice_diagram_container.puml`](schemas/container/microsevice_diagram_container.puml).
+
+![Диаграмма контейнеров Warmhouse (C4)](schemas/container/microsevice_diagram_container.png)
 
 **Диаграмма компонентов (Components)**
 
-[schemas/component/microsevice_diagram_component.puml](schemas/component/microsevice_diagram_component.puml)
+Исходник PlantUML: [`schemas/component/microsevice_diagram_component.puml`](schemas/component/microsevice_diagram_component.puml).
+
+![Диаграмма компонентов Warmhouse (C4)](schemas/component/microsevice_diagram_component.png)
 
 Диаграмма раскрывает внутреннюю структуру каждого сервиса: API-компоненты, бизнес-логику, Kafka-продьюсеры и консьюмеры, репозитории и вендорные адаптеры внутри `DeviceIntegrationGateway`.
 
 **Диаграмма кода (Code)**
 
-Последовательность выполнения автоматизации в `automation-orchestrator`: от получения `DeviceEvent` до отправки `DeviceCommand` в шлюз. Исходник: [`schemas/code/automation_execution_sequence.puml`](schemas/code/automation_execution_sequence.puml).
+Последовательность выполнения автоматизации в `AutomationOrchestratorService`: от получения `DeviceEvent` до отправки `DeviceCommand` в шлюз. Исходник: [`schemas/code/automation_execution_sequence.puml`](schemas/code/automation_execution_sequence.puml).
 
 ![Последовательность выполнения автоматизации](schemas/code/automation_execution_sequence.png)
 
@@ -91,7 +95,7 @@
 
 ![Модель сценария автоматизации](schemas/code/scenario_model_class.png)
 
-Маппинг команды к протоколу производителя внутри `device-integration-gateway`. Исходник: [`schemas/code/vendor_command_mapping_sequence.puml`](schemas/code/vendor_command_mapping_sequence.puml).
+Маппинг команды к контракту производителя внутри `DeviceIntegrationGateway`. Исходник: [`schemas/code/vendor_command_mapping_sequence.puml`](schemas/code/vendor_command_mapping_sequence.puml).
 
 ![Маппинг команды к протоколу производителя](schemas/code/vendor_command_mapping_sequence.png)
 
@@ -125,11 +129,23 @@
 
 ### 1. Тип API
 
-Укажите, какой тип API вы будете использовать для взаимодействия микросервисов. Объясните своё решение.
+Для синхронных взаимодействий между сервисами (создание сценариев, отправка команд, доставка команды на устройство) используется **REST/HTTP** и документируется через **OpenAPI 3.1**. Эти операции инициируются пользователем или другим сервисом и требуют немедленного подтверждения (201 Created, 202 Accepted).
+
+Для асинхронных событий (телеметрия устройств, статус команды) используется **Kafka** и документируется через **AsyncAPI 2.6**. Telemetry Bus и Event Bus — это однонаправленные потоки данных с неизвестными на момент публикации консьюмерами, что делает REST неуместным: сервис-источник не должен знать о получателях.
 
 ### 2. Документация API
 
-Здесь приложите ссылки на документацию API для микросервисов, которые вы спроектировали в первой части проектной работы. Для документирования используйте Swagger/OpenAPI или AsyncAPI.
+Спецификации находятся в директории [`schemas/api/`](schemas/api/):
+
+**OpenAPI** описывает 4 эндпоинта:
+- `POST /api/v1/scenarios` — создание сценария автоматизации (`AutomationOrchestratorService`)
+- `POST /api/v1/scenarios/{scenarioId}/publish` — публикация сценария в runtime (`AutomationOrchestratorService` → `CommandExecutionService`)
+- `POST /api/v1/commands` — приём ручной команды от пользователя (`CommandExecutionService`)
+- `POST /api/v1/device-commands` — доставка нормализованной команды на устройство (`DeviceIntegrationGateway`)
+
+**AsyncAPI** описывает 2 канала:
+- `device.telemetry.received` — Telemetry Bus: `DeviceIntegrationGateway` публикует нормализованную телеметрию, `EventProcessingService` потребляет
+- `automation.command.status.changed` — Event Bus: `CommandExecutionService` публикует статус команды, `SmartHomeDashboard` потребляет
 
 # Задание 5. Работа с docker и docker-compose
 

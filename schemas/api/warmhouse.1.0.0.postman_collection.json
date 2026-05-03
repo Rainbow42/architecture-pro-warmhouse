@@ -1,0 +1,177 @@
+{
+  "info": {
+    "_postman_id": "ae5c82f1-b8f1-4008-b384-7f4b5ec26c4e",
+    "name": "Warmhouse — REST API управления умным домом 1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12265599"
+  },
+  "item": [
+    {
+      "name": "AutomationOrchestratorService",
+      "item": [
+        {
+          "name": "Опубликовать сценарий в runtime",
+          "protocolProfileBehavior": {
+            "followRedirects": true,
+            "disableUrlEncoding": false,
+            "disableCookies": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{ _.base_url }}/api/v1/scenarios/:scenarioId/publish",
+              "host": [
+                "{{ _.base_url }}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scenarios",
+                ":scenarioId",
+                "publish"
+              ],
+              "variable": [
+                {
+                  "key": "scenarioId"
+                }
+              ]
+            },
+            "description": "Передаёт валидный и активный сценарий в CommandExecutionService для исполнения. Возвращает ошибку 409, если сценарий отключён или содержит невалидные ссылки на устройства.\n"
+          },
+          "response": []
+        },
+        {
+          "name": "Создать сценарий автоматизации",
+          "protocolProfileBehavior": {
+            "followRedirects": true,
+            "disableUrlEncoding": false,
+            "disableCookies": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"houseId\": \"string\",\n  \"name\": \"string\",\n  \"enabled\": true,\n  \"triggers\": [\n    {\n      \"sourceDeviceId\": \"string\",\n      \"capabilityId\": \"string\",\n      \"operator\": \"string\",\n      \"value\": \"string\"\n    }\n  ],\n  \"conditions\": [\n    {\n      \"sourceDeviceId\": \"string\",\n      \"capabilityId\": \"string\",\n      \"operator\": \"string\",\n      \"value\": \"string\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"targetDeviceId\": \"string\",\n      \"capabilityId\": \"string\",\n      \"action\": \"string\",\n      \"value\": \"string\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ _.base_url }}/api/v1/scenarios",
+              "host": [
+                "{{ _.base_url }}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scenarios"
+              ]
+            },
+            "description": "Создаёт новый сценарий автоматизации с триггером, условиями и действиями. Сценарий сохраняется в черновом состоянии и не исполняется до публикации.\n"
+          },
+          "response": []
+        }
+      ],
+      "description": "AutomationOrchestratorService — создание и публикация сценариев автоматизации"
+    },
+    {
+      "name": "CommandExecutionService",
+      "item": [
+        {
+          "name": "Отправить ручную команду устройству",
+          "protocolProfileBehavior": {
+            "followRedirects": true,
+            "disableUrlEncoding": false,
+            "disableCookies": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"string\",\n  \"capability\": \"string\",\n  \"action\": \"string\",\n  \"value\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ _.base_url }}/api/v1/commands",
+              "host": [
+                "{{ _.base_url }}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "commands"
+              ]
+            },
+            "description": "Принимает команду от пользователя и ставит её в очередь на исполнение. CommandExecutionService публикует команду в Event Bus для доставки через DeviceIntegrationGateway.\n"
+          },
+          "response": []
+        }
+      ],
+      "description": "CommandExecutionService — приём и постановка команд в очередь исполнения"
+    },
+    {
+      "name": "DeviceIntegrationGateway",
+      "item": [
+        {
+          "name": "Доставить команду на устройство через шлюз",
+          "protocolProfileBehavior": {
+            "followRedirects": true,
+            "disableUrlEncoding": false,
+            "disableCookies": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"string\",\n  \"capability\": \"string\",\n  \"action\": \"string\",\n  \"value\": \"string\",\n  \"commandId\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ _.base_url }}/api/v1/device-commands",
+              "host": [
+                "{{ _.base_url }}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "device-commands"
+              ]
+            },
+            "description": "Принимает нормализованную команду из Event Bus и транслирует её в запрос производителя конкретного устройства через соответствующий адаптер.\n"
+          },
+          "response": []
+        }
+      ],
+      "description": "DeviceIntegrationGateway — трансляция команд в запросы производителей устройств"
+    }
+  ]
+}

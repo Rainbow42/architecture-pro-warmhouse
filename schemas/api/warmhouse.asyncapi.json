@@ -1,0 +1,226 @@
+{
+  "asyncapi": "2.6.0",
+  "info": {
+    "title": "Warmhouse — Event API асинхронного обмена",
+    "description": "Асинхронные события системы Warmhouse через Kafka-шины. Telemetry Bus доставляет сырую телеметрию устройств от DeviceIntegrationGateway до EventProcessingService. Event Bus транслирует обновления статуса команд от CommandExecutionService до SmartHomeDashboard.\n",
+    "version": "1.0.0"
+  },
+  "servers": {
+    "kafka": {
+      "url": "kafka:9092",
+      "protocol": "kafka",
+      "description": "Kafka-брокер для шин Event Bus и Telemetry Bus"
+    }
+  },
+  "channels": {
+    "device.telemetry.received": {
+      "description": "Канал Telemetry Bus. Публикует DeviceIntegrationGateway после получения ответа от устройства и преобразования вендорного контракта в нормализованное событие. Потребляет EventProcessingService для сохранения телеметрии и публикации обработанного события в Event Bus.\n",
+      "publish": {
+        "summary": "Публикация нормализованного события телеметрии",
+        "operationId": "publishDeviceTelemetry",
+        "x-producer": "device-integration-gateway",
+        "message": {
+          "$ref": "#/components/messages/DeviceTelemetryEvent"
+        }
+      },
+      "subscribe": {
+        "summary": "Получение события телеметрии",
+        "operationId": "consumeDeviceTelemetry",
+        "x-consumer": "telemetry-ingestion",
+        "message": {
+          "$ref": "#/components/messages/DeviceTelemetryEvent"
+        }
+      }
+    },
+    "automation.command.status.changed": {
+      "description": "Канал Event Bus. Публикует CommandExecutionService при каждом изменении статуса команды (принята, отправлена, завершена с ошибкой, таймаут). Потребляет SmartHomeDashboard для отображения актуального состояния команды пользователю.\n",
+      "publish": {
+        "summary": "Публикация изменения статуса команды",
+        "operationId": "publishCommandStatusChanged",
+        "x-producer": "automation-orchestrator",
+        "message": {
+          "$ref": "#/components/messages/CommandStatusChangedEvent"
+        }
+      },
+      "subscribe": {
+        "summary": "Получение изменения статуса команды",
+        "operationId": "consumeCommandStatusChanged",
+        "x-consumer": "smart-home-console",
+        "message": {
+          "$ref": "#/components/messages/CommandStatusChangedEvent"
+        }
+      }
+    }
+  },
+  "components": {
+    "messages": {
+      "DeviceTelemetryEvent": {
+        "name": "DeviceTelemetryEvent",
+        "title": "Событие телеметрии устройства",
+        "summary": "Нормализованные показания датчика или состояние устройства",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/DeviceTelemetryEvent"
+        },
+        "examples": [
+          {
+            "name": "Показание температурного датчика",
+            "payload": {
+              "eventId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "houseId": "550e8400-e29b-41d4-a716-446655440000",
+              "deviceId": "550e8400-e29b-41d4-a716-446655440010",
+              "capability": "temperature",
+              "value": "22.5",
+              "unit": "°C",
+              "occurredAt": "2026-05-04T10:00:00Z",
+              "receivedAt": "2026-05-04T10:00:01Z"
+            }
+          },
+          {
+            "name": "Изменение состояния освещения",
+            "payload": {
+              "eventId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+              "houseId": "550e8400-e29b-41d4-a716-446655440000",
+              "deviceId": "550e8400-e29b-41d4-a716-446655440030",
+              "capability": "brightness",
+              "value": "75",
+              "unit": "%",
+              "occurredAt": "2026-05-04T10:01:00Z",
+              "receivedAt": "2026-05-04T10:01:00Z"
+            }
+          }
+        ]
+      },
+      "CommandStatusChangedEvent": {
+        "name": "CommandStatusChangedEvent",
+        "title": "Изменение статуса выполнения команды",
+        "summary": "Уведомление о переходе команды в новый статус",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/CommandStatusChangedEvent"
+        },
+        "examples": [
+          {
+            "name": "Команда успешно доставлена",
+            "payload": {
+              "commandId": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+              "deviceId": "550e8400-e29b-41d4-a716-446655440030",
+              "status": "sent",
+              "changedAt": "2026-05-04T10:02:01Z"
+            }
+          },
+          {
+            "name": "Таймаут доставки команды",
+            "payload": {
+              "commandId": "d4e5f6a7-b8c9-0123-defa-234567890123",
+              "deviceId": "550e8400-e29b-41d4-a716-446655440031",
+              "status": "timeout",
+              "reason": "Устройство не ответило в течение 10 секунд",
+              "changedAt": "2026-05-04T10:03:10Z"
+            }
+          }
+        ]
+      }
+    },
+    "schemas": {
+      "DeviceTelemetryEvent": {
+        "type": "object",
+        "required": [
+          "eventId",
+          "houseId",
+          "deviceId",
+          "capability",
+          "value",
+          "occurredAt",
+          "receivedAt"
+        ],
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Уникальный идентификатор события"
+          },
+          "houseId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Дом, которому принадлежит устройство"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Устройство-источник телеметрии"
+          },
+          "capability": {
+            "type": "string",
+            "enum": [
+              "power",
+              "temperature",
+              "brightness",
+              "humidity",
+              "gate"
+            ],
+            "description": "Характеристика, по которой получена телеметрия"
+          },
+          "value": {
+            "type": "string",
+            "description": "Значение характеристики в виде строки"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Единица измерения (°C, %, lux и т.д.)"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Время события на стороне устройства"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Время получения события шлюзом"
+          }
+        }
+      },
+      "CommandStatusChangedEvent": {
+        "type": "object",
+        "required": [
+          "commandId",
+          "deviceId",
+          "status",
+          "changedAt"
+        ],
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Идентификатор команды"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Целевое устройство команды"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "sent",
+              "failed",
+              "timeout"
+            ],
+            "description": "Новый статус команды"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Причина перехода в статус failed или timeout"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Время изменения статуса"
+          }
+        }
+      }
+    }
+  }
+}

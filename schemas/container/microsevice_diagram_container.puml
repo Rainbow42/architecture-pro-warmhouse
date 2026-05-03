@@ -1,5 +1,7 @@
-@startuml Warmhouse - C4 Container Diagram
-!include HTTP://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+@startuml microsevice_diagram_container
+title Warmhouse — C4 Container Diagram
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
 LAYOUT_TOP_DOWN()
 
