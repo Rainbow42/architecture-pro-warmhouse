@@ -1,4 +1,5 @@
-@startuml Логическая модель данных сервиса Warmhouse
+@startuml smart_home_erd
+title Логическая модель данных сервиса Warmhouse
 
 skinparam linetype ortho
 

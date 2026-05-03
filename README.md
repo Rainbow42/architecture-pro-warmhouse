@@ -109,7 +109,9 @@
 
 # Задание 3. Разработка ER-диаграммы
 
-Модель данных умного дома: [`diagrams/edr/smart_home_erd.puml`](diagrams/edr/smart_home_erd.puml)
+Модель данных умного дома (исходник PlantUML: [`schemas/erd/smart_home_erd.puml`](schemas/erd/smart_home_erd.puml)):
+
+![ER-диаграмма умного дома](schemas/erd/smart_home_erd.png)
 
 # Задание 4. Создание и документирование API
 
