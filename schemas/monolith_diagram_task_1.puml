@@ -1,0 +1,24 @@
+@startuml Monolith Diagram for Smarthome app
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Users", "Smarthome ap]p users")
+Person(admin, "Administrator", "Manages sensors configuration")
+System_Ext(sensors, "Sensors", "Sensors that send data to the Smarthome app", $sprite="robot")
+
+System_Boundary(c1, "Monolith ") {
+    Container(web_app, "API for Frontend UI", "GO", "Allows the user to view the sensors and the admin to manage them")
+    Container(api_for_sensors, "API for Sensors", "GO", "Update sensors values and status")
+    ContainerDb(rel_db, "Database", "PostgreSQL 16", "Database for the Smarthome app")
+    Container(temperature_api, "Temperature service", "GO", "Acts as a proxy to the sensors to get the temperature data")
+}
+
+Rel(user, web_app, "View sensors data", "HTTPS REST")
+Rel(admin, web_app, "Add/remove/update sensors", "HTTPS REST")
+Rel(sensors, api_for_sensors, "Pass sensor values and status", "HTTPS PATCH /api/v1/sensors/:id/value")
+Rel(web_app, temperature_api, "Uses", "Calls temperature service to get temperature data and by location")
+Rel(temperature_api, sensors, "Uses", "HTTPS GET /temperature/<sensor_id> and /temperature/?location=<location>")
+
+
+Rel(web_app, rel_db, "Reads from and writes to")
+Rel(api_for_sensors, rel_db, "Writes to")
+@endumlлиб
