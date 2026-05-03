@@ -1,0 +1,48 @@
+@startuml Модель сценария ы
+title Модель сценария автоматизации\n(AutomationOrchestratorService)
+
+class Scenario {
+    id: UUID
+    name: string
+    status: draft | active | disabled
+    version: int
+    ownerId: UUID
+}
+
+class Trigger {
+    eventType: string
+    deviceType: string
+}
+
+class Condition {
+    field: string
+    operator: eq | gt | lt | neq
+    value: any
+}
+
+class Action {
+    commandType: string
+    targetDeviceId: UUID
+    payload: map[string]any
+}
+
+class DeviceEvent {
+    deviceId: UUID
+    eventType: string
+    value: any
+    occurredAt: time
+}
+
+class DeviceCommand {
+    deviceId: UUID
+    commandType: string
+    payload: map[string]any
+}
+
+Scenario "1" *-down- "1" Trigger : содержит
+Scenario "1" *-down- "0..*" Condition : содержит
+Scenario "1" *-down- "1..*" Action : содержит
+
+Trigger ..> DeviceEvent : оценивается по
+Action ..> DeviceCommand : формирует
+@enduml
