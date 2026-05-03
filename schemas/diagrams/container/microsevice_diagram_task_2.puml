@@ -13,7 +13,6 @@ System_Boundary(c1, "Microservices ") {
     Container(service_event_processing, "EventProcessingService", "Microservice, GO", "Сервис для приема событий от шлюза и их первичной обработки")
     Container(device_integration_gateway, "DeviceIntegrationGateway", "Microservice, GO", "Единый шлюз для связки разных производителей устройств с нашим сервисом")
     Container(service_automation_orchestrator, "AutomationOrchestratorService", "Microservice, GO", "Позволяет прогрммировать поведение умных устройств")
-    ' Container_Ext(message_bus, "Message Bus", "RabbitMQ", "Message bus for the microservices")
 
     ' Database for the microservices
     ContainerDb(db_users_management, "Database for users management", "PostgreSQL 16", "Содержит информацию о пользователях (клиент/администратор), сценариях, устройствах")
