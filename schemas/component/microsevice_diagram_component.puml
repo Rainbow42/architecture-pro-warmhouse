@@ -1,0 +1,103 @@
+@startuml microsevice_diagram_component
+title Warmhouse — C4 Component Diagram
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_TOP_DOWN()
+
+Person(user, "Пользователь", "Клиент, который использует Warmhouse")
+Person(admin, "Администратор", "Управляет пользователями и настройками")
+
+System_Ext(sensors, "Умные устройства", "Датчики и умные устройства, подключённые к системе")
+System_Ext(event_bus, "Event Bus", "Kafka — шина событий между сервисами")
+System_Ext(telemetry_bus, "Telemetry Bus", "Kafka — шина телеметрии от устройств")
+
+
+Container_Boundary(c_app, "SmartHomeDashboard ") {
+    Component(comp_dashboard_ui, "SmartHomeDashboard", "Mobile / Web App", "UI для просмотра состояния устройств и управления умным домом")
+}
+
+
+Container_Boundary(c_ums, "UserManagementService") {
+    Component(comp_user_api, "User & Admin API", " API, Go", "Обрабатывает запросы пользователей и администраторов")
+    Component(comp_home_device_mgmt, "Home & Device Management", "Go", "Управление домами, комнатами и регистрацией устройств")
+    ComponentDb(db_ums, "UserManagement", "PostgreSQL 16", "Пользователи, дома, комнаты, реестр устройств")
+
+    Rel(comp_dashboard_ui, comp_user_api, "Вызывает", "HTTP")
+    Rel(comp_user_api, comp_home_device_mgmt, "Делегирует")
+    Rel(comp_home_device_mgmt, db_ums, "Читает и записывает")
+}
+
+
+Container_Boundary(c_aos, "AutomationOrchestratorService") {
+    Component(comp_scenario_api, "Scenario API", " API, Go", "Принимает запросы на создание и управление сценариями автоматизации")
+    Component(comp_scenario_manager, "Scenario Manager", "Go", "Создание, редактирование и валидация сценариев")
+    Component(comp_scenario_repo, "Scenario Repository", "Go", "Хранение и версионирование сценариев")
+    Component(comp_scenario_publisher, "Scenario Publisher", "Go", "Публикует активные сценарии в CommandExecutionService")
+    ComponentDb(db_aos, "AutomationOrchestrator", "PostgreSQL 16", "Определения и версии сценариев автоматизации")
+
+    Rel(comp_scenario_api, comp_scenario_manager, "Передаёт запрос")
+    Rel(comp_scenario_manager, comp_scenario_repo, "Сохраняет сценарий")
+    Rel(comp_scenario_repo, db_aos, "Читает и записывает")
+    Rel(comp_scenario_publisher, comp_scenario_repo, "Читает активные сценарии")
+}
+
+
+Container_Boundary(c_ces, "CommandExecutionService") {
+    Component(comp_command_api, "Command API", " API, Go", "Принимает ручные команды и активные сценарии")
+    Component(comp_scenario_engine, "Scenario Engine", "Go", "Исполняет сценарии, оценивает триггеры и условия на основе событий")
+    Component(comp_event_consumer_ces, "Event Consumer", "Kafka Consumer, Go", "Получает события устройств из Event Bus для оценки триггеров")
+    Component(comp_command_publisher, "Command Publisher", "Kafka Producer, Go", "Публикует команды для устройств в Event Bus")
+    ComponentDb(db_ces, "CommandExecution", "PostgreSQL 16", "История команд и состояние активных сценариев")
+
+    Rel(comp_command_api, comp_scenario_engine, "Передаёт команды и сценарии")
+    Rel(comp_event_consumer_ces, comp_scenario_engine, "Передаёт входящие события")
+    Rel(comp_scenario_engine, comp_command_publisher, "Публикует команду для устройства")
+    Rel(comp_scenario_engine, db_ces, "Читает и записывает состояние")
+}
+
+
+Container_Boundary(c_eps, "EventProcessingService") {
+    Component(comp_telemetry_consumer, "Telemetry Consumer", "Kafka Consumer, Go", "Получает сырые события устройств из Telemetry Bus")
+    Component(comp_event_processor, "Event Processor", "Go", "Нормализует и валидирует входящие события устройств")
+    Component(comp_telemetry_repo, "Telemetry Repository", "Go", "Сохраняет телеметрию и события устройств")
+    Component(comp_event_publisher, "Event Publisher", "Kafka Producer, Go", "Публикует обработанные события в Event Bus")
+    ComponentDb(db_eps, "EventProcessing", "PostgreSQL 16", "Телеметрия и события от устройств")
+
+    Rel(comp_telemetry_consumer, comp_event_processor, "Передаёт сырые события")
+    Rel(comp_event_processor, comp_telemetry_repo, "Сохраняет событие")
+    Rel(comp_telemetry_repo, db_eps, "Читает и записывает")
+    Rel(comp_event_processor, comp_event_publisher, "Публикует обработанное событие")
+}
+
+
+Container_Boundary(c_dig, "DeviceIntegrationGateway") {
+    Component(comp_command_consumer, "Command Consumer", "Kafka Consumer, Go", "Получает команды для устройств из Event Bus")
+    Component(comp_vendor_adapters, "Vendor Adapters", "Go", "Адаптеры производителей: маппинг команд и событий, взаимодействие с устройствами через их API и протоколы")
+    Component(comp_telemetry_publisher, "Telemetry Publisher", "Kafka Producer, Go", "Публикует конвертированные события устройств в Telemetry Bus")
+
+    Rel(comp_command_consumer, comp_vendor_adapters, "Маршрутизирует команду к нужному адаптеру")
+    Rel(comp_vendor_adapters, comp_telemetry_publisher, "Передаёт полученные от устройств события")
+}
+
+
+' Relationships between the components
+Rel(user, comp_dashboard_ui, "Управляет умным домом", "HTTP")
+Rel(admin, comp_dashboard_ui, "Администрирует систему", "HTTP")
+
+Rel(comp_user_api, comp_scenario_api, "Управление сценариями автоматизации", "HTTP ")
+Rel(comp_user_api, comp_command_api, "Ручные команды на устройства", "HTTP ")
+Rel(comp_scenario_publisher, comp_command_api, "Публикует активные сценарии", "HTTP ")
+
+Rel(comp_command_publisher, event_bus, "Публикует команды для устройств", "Publish")
+Rel(comp_event_consumer_ces, event_bus, "Получает события устройств", "Subscribe")
+Rel(comp_command_consumer, event_bus, "Получает команды для устройств", "Subscribe")
+Rel(comp_event_publisher, event_bus, "Публикует обработанные события", "Publish")
+
+Rel(comp_vendor_adapters, sensors, "Отправляет команды и получает события от устройств", "HTTP")
+
+Rel(comp_telemetry_publisher, telemetry_bus, "Публикует сырые события устройств", "Publish")
+Rel(comp_telemetry_consumer, telemetry_bus, "Получает сырые события", "Subscribe")
+
+SHOW_LEGEND()
+@enduml

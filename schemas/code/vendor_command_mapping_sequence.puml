@@ -1,0 +1,42 @@
+@startuml vendor_command_mapping_sequence
+title Шлюз для маппинга команды к протоколу производителя\n(DeviceIntegrationGateway)
+
+participant "AutomationOrchestratorService" as AO
+participant "CommandReceiver" as Receiver
+participant "VendorAdapterRegistry" as Registry
+participant "CommandMapper" as Mapper
+participant "VendorAdapter" as Adapter
+participant "EventMapper" as EventMapper
+participant "Устройство" as Device
+queue "Telemetry Bus" as Bus
+
+AO -> Receiver : DeviceCommand\n{deviceId, commandType, payload}
+activate Receiver
+
+Receiver -> Registry : getAdapter(vendorType)
+activate Registry
+Registry --> Receiver : VendorAdapter
+deactivate Registry
+
+Receiver -> Mapper : toVendorFormat(DeviceCommand, VendorAdapter)
+activate Mapper
+Mapper --> Receiver : vendorCommand
+deactivate Mapper
+
+Receiver -> Adapter : send(vendorCommand)
+activate Adapter
+Adapter -> Device : execute(vendorCommand HTTP)
+Device --> Adapter : сырой ответ\n(vendor-контракт)
+
+Adapter -> EventMapper : toDeviceEvent(vendorResponse)
+activate EventMapper
+EventMapper --> Adapter : DeviceEvent\n{deviceId, eventType, value}
+deactivate EventMapper
+
+Adapter -> Bus : publish(DeviceEvent)
+Adapter --> Receiver : CommandResult
+deactivate Adapter
+
+Receiver --> AO : CommandResult
+deactivate Receiver
+@enduml

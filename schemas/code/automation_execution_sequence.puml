@@ -1,0 +1,44 @@
+@startuml automation_execution_sequence
+title Выполнение автоматизации по событию устройства\n(AutomationOrchestratorService)
+
+queue "Event Bus" as Bus
+participant "EventConsumer" as Consumer
+participant "ScenarioEngine" as Engine
+participant "Trigger" as Trigger
+participant "Condition" as Condition
+participant "Action" as Action
+participant "DeviceIntegrationGateway" as DIG
+
+Bus -> Consumer : DeviceEvent\n{deviceId, eventType, value}
+activate Consumer
+Consumer -> Engine : processEvent(DeviceEvent)
+activate Engine
+
+Engine -> Engine : findActiveScenarios(eventType)
+Engine -> Trigger : evaluate(DeviceEvent)
+activate Trigger
+Trigger --> Engine : matched: bool
+deactivate Trigger
+
+alt триггер сработал и условия выполнены
+    Engine -> Condition : checkAll(DeviceEvent)
+    activate Condition
+    Condition --> Engine : passed: bool
+    deactivate Condition
+
+    Engine -> Action : execute()
+    activate Action
+    Action --> Engine : DeviceCommand\n{deviceId, commandType, payload}
+    deactivate Action
+
+    Engine -> DIG : sendCommand(DeviceCommand)
+    activate DIG
+    DIG --> Engine : accepted
+    deactivate DIG
+else триггер не сработал или условие не выполнено
+    Engine -> Engine : событие пропускается
+end
+
+deactivate Engine
+deactivate Consumer
+@enduml

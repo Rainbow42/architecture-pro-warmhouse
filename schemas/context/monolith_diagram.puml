@@ -1,0 +1,37 @@
+@startuml Monolith Diagram for Warmhouse app
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+
+
+Person(user, "Users", "Warmhouse ap]p users")
+Person(admin, "Administrator", "Manages sensors configuration")
+System_Ext(sensors, "Sensors", "Sensors that send data to the Warmhouse app, only temperature sensors are supported", $sprite="robot")
+
+System_Boundary(c1, "Monolith ") {
+    ' Domain services
+    Container(web_app, "API for Frontend UI", "GO", "Allows the user to view the sensors and the admin to manage them")
+    Container(api_for_sensors, "API for Sensors", "GO", "Update sensors values and status")
+    Container(temperature_api, "Temperature service", "GO", "Acts as a proxy to the sensors to get the temperature data")
+
+    ContainerDb(rel_db, "Database", "PostgreSQL 16", "Database for the Warmhouse app")
+
+    ' Relationships between the monolith and the database
+    Rel(web_app, rel_db, "Reads from and writes to")
+    Rel(api_for_sensors, rel_db, "Writes to")
+
+}
+
+' Relationships between the users and the monolith
+Rel(user, web_app, "View sensors data", "HTTPS REST")
+Rel(admin, web_app, "Add/remove/update sensors", "HTTPS REST")
+
+' Relationships between the devices and the monolith
+Rel(sensors, api_for_sensors, "Pass sensor values and status", "HTTPS PATCH /api/v1/sensors/:id/value")
+Rel(web_app, temperature_api, "Uses", "Calls temperature service to get temperature data and by location")
+Rel(temperature_api, sensors, "Uses", "HTTPS GET /temperature/<sensor_id> and /temperature/?location=<location>")
+
+
+SHOW_LEGEND()
+
+@enduml
